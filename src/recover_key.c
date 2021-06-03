@@ -1,4 +1,4 @@
-#include "astrolabous/decrypt.h"
+#include "astrolabous/astrolabous.h"
 
 #include "hash.h"
 
