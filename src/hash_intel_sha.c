@@ -194,12 +194,12 @@ void astrolabous_hash_intel_sha(uint32_t *buf, uint64_t n_iter)
 	do sha2(buf); while (--n_iter);
 }
 
-bool astrolabous_intel_sha_available(void)
+bool astrolabous_intel_sha_avail(void)
 {
 	int a, b, c, d;
 	a = 7;
 	c = 0;
-	__asm volatile (
+	__asm__ volatile (
 		"cpuid"
 		: "=a"(a), "=b"(b), "=c"(c), "=d"(d)
 		: "a"(a), "c"(c)
@@ -214,7 +214,7 @@ void astrolabous_hash_intel_sha(uint32_t *buf, uint64_t n_iter)
 	(void) buf; (void) n_iter;
 }
 
-bool astrolabous_intel_sha_available(void)
+bool astrolabous_intel_sha_avail(void)
 {
 	return false;
 }

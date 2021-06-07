@@ -1,8 +1,7 @@
 #include "astrolabous/astrolabous.h"
 
 #include "words.h"
-#include "hash_generic.h"
-#include "hash_intel_sha.h"
+#include "hash.h"
 
 void astrolabous_recover_key(
 		uint8_t *key,
@@ -12,13 +11,10 @@ void astrolabous_recover_key(
 {
 	uint32_t buf[8];
 	uint32_t pad[8];
-	void (*hash)(uint32_t *, uint64_t);
+	astrolabous_hash_fn hash;
 	int i;
 	if (n_hash == 0 || n_iter == 0) return;
-	if (astrolabous_intel_sha_available())
-		hash = astrolabous_hash_intel_sha;
-	else
-		hash = astrolabous_hash_generic;
+	hash = astrolabous_hash_impl();
 	astrolabous_words_from_bytes(buf, ckey, 8);
 	do {
 		hash(buf, n_iter);
