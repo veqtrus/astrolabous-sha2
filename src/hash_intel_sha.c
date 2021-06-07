@@ -1,29 +1,8 @@
-#include "hash.h"
+#include "hash_intel_sha.h"
 
-#ifdef _WIN32
-#include <intrin.h>
-#else
-#include <x86intrin.h>
-#endif
+#if ASTROLABOUS_INTEL_SHA
 
-static uint32_t get_be32(const uint8_t *buf)
-{
-	return (((((((uint32_t) buf[0]) << 8)
-		| buf[1]) << 8)
-			| buf[2]) << 8)
-				| buf[3];
-}
-
-static void put_be32(uint8_t *buf, uint32_t val)
-{
-	buf[3] = val;
-	val >>= 8;
-	buf[2] = val;
-	val >>= 8;
-	buf[1] = val;
-	val >>= 8;
-	buf[0] = val;
-}
+#include <immintrin.h>
 
 // Based on https://github.com/noloader/SHA-Intrinsics/blob/master/sha256-x86.c
 static void sha2(uint32_t *buf)
@@ -201,24 +180,43 @@ static void sha2(uint32_t *buf)
 	state1 = _mm_add_epi32(state1, state1saved);
 	
 	tmp = _mm_shuffle_epi32(state0, 0x1B);       /* FEBA */
-    state1 = _mm_shuffle_epi32(state1, 0xB1);    /* DCHG */
-    state0 = _mm_blend_epi16(tmp, state1, 0xF0); /* DCBA */
-    state1 = _mm_alignr_epi8(state1, tmp, 8);    /* ABEF */
+	state1 = _mm_shuffle_epi32(state1, 0xB1);    /* DCHG */
+	state0 = _mm_blend_epi16(tmp, state1, 0xF0); /* DCBA */
+	state1 = _mm_alignr_epi8(state1, tmp, 8);    /* ABEF */
 	
 	/* Save state */
 	_mm_storeu_si128((__m128i*) &buf[0], state0);
 	_mm_storeu_si128((__m128i*) &buf[4], state1);
 }
 
-void astrolabous_hash(uint8_t *buf, uint64_t n_iter)
+void astrolabous_hash_intel_sha(uint32_t *buf, uint64_t n_iter)
 {
-	uint32_t hash[8];
-	int i;
-	for (i = 0; i < 8; ++i)
-		hash[i] = get_be32(buf + sizeof(uint32_t) * i);
-	do
-		sha2(hash);
-	while (--n_iter);
-	for (i = 0; i < 8; ++i)
-		put_be32(buf + sizeof(uint32_t) * i, hash[i]);
+	do sha2(buf); while (--n_iter);
 }
+
+bool astrolabous_intel_sha_available(void)
+{
+	int a, b, c, d;
+	a = 7;
+	c = 0;
+	__asm volatile (
+		"cpuid"
+		: "=a"(a), "=b"(b), "=c"(c), "=d"(d)
+		: "a"(a), "c"(c)
+	);
+	return ((b >> 29) & 1);
+}
+
+#else
+
+void astrolabous_hash_intel_sha(uint32_t *buf, uint64_t n_iter)
+{
+	(void) buf; (void) n_iter;
+}
+
+bool astrolabous_intel_sha_available(void)
+{
+	return false;
+}
+
+#endif
