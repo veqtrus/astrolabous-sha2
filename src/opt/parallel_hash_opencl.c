@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #define CL_TARGET_OPENCL_VERSION 100
 #include <CL/cl.h>
@@ -122,11 +123,32 @@ static void cleanup_opencl(struct ctx_opencl *ctx)
 		clReleaseDevice(*ctx->p_device);*/
 }
 
+static int run_kernel(cl_kernel kernel, cl_command_queue queue, size_t n_hash, uint64_t n_iter)
+{
+	int err;
+	clock_t duration;
+	uint64_t step_iters = 1024;
+	if (step_iters > n_iter) step_iters = n_iter;
+	do {
+		err = clSetKernelArg(kernel, 1, sizeof(step_iters), &step_iters);
+		if (err < 0) return err;
+		duration = clock();
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &n_hash, NULL, 0, NULL, NULL);
+		if (err < 0) return err;
+		err = clFinish(queue);
+		if (err < 0) return err;
+		n_iter -= step_iters;
+		duration = clock() - duration;
+		step_iters = step_iters * (CLOCKS_PER_SEC / 32 + CLOCKS_PER_SEC / 128) / (duration + CLOCKS_PER_SEC / 128);
+		if (step_iters > n_iter) step_iters = n_iter;
+	} while (step_iters);
+	return 0;
+}
+
 char *astrolabous_parallel_hash_opencl(
 		uint32_t *buf, uint32_t n_hash, uint64_t n_iter)
 {
 	struct ctx_opencl ctx = { 0 };
-	size_t work_size;
 	size_t prog_size;
 	const char *prog_src;
 	char *err_str;
@@ -189,23 +211,17 @@ char *astrolabous_parallel_hash_opencl(
 		return err_str_opencl(err);
 	}
 	ctx.p_buffer = &buffer;
-	err = clSetKernelArg(kernel, 0, sizeof(buffer), &buffer);
-	if (err < 0) {
-		cleanup_opencl(&ctx);
-		return err_str_opencl(err);
-	}
-	err = clSetKernelArg(kernel, 1, sizeof(n_iter), &n_iter);
-	if (err < 0) {
-		cleanup_opencl(&ctx);
-		return err_str_opencl(err);
-	}
 	err = clEnqueueWriteBuffer(queue, buffer, CL_FALSE, 0, n_hash * 32, buf, 0, NULL, NULL);
 	if (err < 0) {
 		cleanup_opencl(&ctx);
 		return err_str_opencl(err);
 	}
-	work_size = n_hash;
-	err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &work_size, NULL, 0, NULL, NULL);
+	err = clSetKernelArg(kernel, 0, sizeof(buffer), &buffer);
+	if (err < 0) {
+		cleanup_opencl(&ctx);
+		return err_str_opencl(err);
+	}
+	err = run_kernel(kernel, queue, n_hash, n_iter);
 	if (err < 0) {
 		cleanup_opencl(&ctx);
 		return err_str_opencl(err);
