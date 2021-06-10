@@ -1,13 +1,10 @@
 #include "hash_intel_sha.h"
 
-#if ASTROLABOUS_INTEL_SHA
-
 #include <immintrin.h>
 
 // Based on https://github.com/noloader/SHA-Intrinsics/blob/master/sha256-x86.c
 static void sha2(uint32_t *buf)
 {
-	static const uint32_t padding[] = { 0x80000000UL, 0, 0, 0, 0, 0, 0, 256 };
 	__m128i state0, state1, state0saved, state1saved;
 	__m128i msg, tmp, msg0, msg1, msg2, msg3;
 	
@@ -29,30 +26,30 @@ static void sha2(uint32_t *buf)
 	
 	/* Rounds 0-3 */
 	msg0 = _mm_loadu_si128((const __m128i*) (buf));
-	msg = _mm_add_epi32(msg0, _mm_set_epi64x(0xE9B5DBA5B5C0FBCFULL, 0x71374491428A2F98ULL));
+	msg = _mm_add_epi32(msg0, _mm_set_epi32(0xE9B5DBA5UL, 0xB5C0FBCFUL, 0x71374491UL, 0x428A2F98UL));
 	state1 = _mm_sha256rnds2_epu32(state1, state0, msg);
 	msg = _mm_shuffle_epi32(msg, 0x0E);
 	state0 = _mm_sha256rnds2_epu32(state0, state1, msg);
 	
 	/* Rounds 4-7 */
 	msg1 = _mm_loadu_si128((const __m128i*) (buf+4));
-	msg = _mm_add_epi32(msg1, _mm_set_epi64x(0xAB1C5ED5923F82A4ULL, 0x59F111F13956C25BULL));
+	msg = _mm_add_epi32(msg1, _mm_set_epi32(0xAB1C5ED5UL, 0x923F82A4UL, 0x59F111F1UL, 0x3956C25BUL));
 	state1 = _mm_sha256rnds2_epu32(state1, state0, msg);
 	msg = _mm_shuffle_epi32(msg, 0x0E);
 	state0 = _mm_sha256rnds2_epu32(state0, state1, msg);
 	msg0 = _mm_sha256msg1_epu32(msg0, msg1);
 	
 	/* Rounds 8-11 */
-	msg2 = _mm_loadu_si128((const __m128i*) (padding));
-	msg = _mm_add_epi32(msg2, _mm_set_epi64x(0x550C7DC3243185BEULL, 0x12835B01D807AA98ULL));
+	msg2 = _mm_set_epi32(0, 0, 0, 0x80000000UL);
+	msg = _mm_set_epi32(0x550C7DC3UL, 0x243185BEUL, 0x12835B01UL, 0x5807AA98UL);
 	state1 = _mm_sha256rnds2_epu32(state1, state0, msg);
 	msg = _mm_shuffle_epi32(msg, 0x0E);
 	state0 = _mm_sha256rnds2_epu32(state0, state1, msg);
 	msg1 = _mm_sha256msg1_epu32(msg1, msg2);
 	
 	/* Rounds 12-15 */
-	msg3 = _mm_loadu_si128((const __m128i*) (padding+4));
-	msg = _mm_add_epi32(msg3, _mm_set_epi64x(0xC19BF1749BDC06A7ULL, 0x80DEB1FE72BE5D74ULL));
+	msg3 = _mm_set_epi32(256, 0, 0, 0);
+	msg = _mm_set_epi32(0xC19BF274UL, 0x9BDC06A7UL, 0x80DEB1FEUL, 0x72BE5D74UL);
 	state1 = _mm_sha256rnds2_epu32(state1, state0, msg);
 	tmp = _mm_alignr_epi8(msg3, msg2, 4);
 	msg0 = _mm_add_epi32(msg0, tmp);
@@ -194,7 +191,7 @@ void astrolabous_hash_intel_sha(uint32_t *buf, uint64_t n_iter)
 	do sha2(buf); while (--n_iter);
 }
 
-bool astrolabous_intel_sha_avail(void)
+int astrolabous_intel_sha_avail(void)
 {
 	int a, b, c, d;
 	a = 7;
@@ -206,17 +203,3 @@ bool astrolabous_intel_sha_avail(void)
 	);
 	return ((b >> 29) & 1);
 }
-
-#else
-
-void astrolabous_hash_intel_sha(uint32_t *buf, uint64_t n_iter)
-{
-	(void) buf; (void) n_iter;
-}
-
-bool astrolabous_intel_sha_avail(void)
-{
-	return false;
-}
-
-#endif

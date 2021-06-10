@@ -1,7 +1,7 @@
 #include "hash.h"
 
-#include "hash_generic.h"
-#include "hash_intel_sha.h"
+#include "opt/hash_generic.h"
+#include "opt/hash_intel_sha.h"
 
 astrolabous_hash_fn astrolabous_hash_impl(void)
 {

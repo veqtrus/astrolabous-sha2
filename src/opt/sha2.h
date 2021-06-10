@@ -6,27 +6,29 @@
 #define static
 #define uint32_t unsigned int
 
-#define RR(x, n) rotate(x, 32 - n)
+#define RR(x, n) rotate((uint32_t) x, (uint32_t) (32 - n))
+#define CH(e, f, g) bitselect(g, f, e)
 
 #else
 
 #include <stdint.h>
 
 #define RR(x, n) ((x >> n) | (x << (32 - n)))
+#define CH(e, f, g) (((g ^ f) & e) ^ g)
 
 #endif
+
+#define MAJ(a, b, c) (((a | b) & c) | (a & b))
 
 #define SCHED(i) w[i & 15] += w[(i + 9) & 15] \
 	+ (RR(w[(i + 1) & 15], 7) ^ RR(w[(i + 1) & 15], 18) ^ (w[(i + 1) & 15] >> 3)) \
 	+ (RR(w[(i + 14) & 15], 17) ^ RR(w[(i + 14) & 15], 19) ^ (w[(i + 14) & 15] >> 10))
 
-#define ROUND(a, b, c, d, e, f, g, h, i, k) ( \
-	h += w[i & 15] + k \
-		+ (RR(e, 6) ^ RR(e, 11) ^ RR(e, 25)) \
-		+ (((g ^ f) & e) ^ g), \
-	d += h, \
-	h += (RR(a, 2) ^ RR(a, 13) ^ RR(a, 22)) \
-		+ (((a | b) & c) | (a & b)) )
+#define ROUND(a, b, c, d, e, f, g, h, i, k) \
+	h += CH(e, f, g) + k + w[i & 15] \
+		+ (RR(e, 6) ^ RR(e, 11) ^ RR(e, 25)); \
+	d += h; \
+	h += MAJ(a, b, c) + (RR(a, 2) ^ RR(a, 13) ^ RR(a, 22))
 
 static void sha2(uint32_t *buf)
 {
