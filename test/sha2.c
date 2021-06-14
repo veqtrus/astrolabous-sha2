@@ -8,7 +8,7 @@ typedef void (*astrolabous_hash_fn)(uint32_t *buf, uint64_t n_iter);
 astrolabous_hash_fn astrolabous_hash_impl(void);
 
 typedef char *(*astrolabous_parallel_hash_fn)(
-		uint32_t *buf, uint32_t n_hash, uint64_t n_iter);
+		uint32_t *buf, uint32_t n_chain, uint64_t n_iter);
 
 astrolabous_parallel_hash_fn astrolabous_parallel_hash_impl(void);
 
@@ -24,14 +24,14 @@ static int single_hash(uint64_t n_iter)
 	return 0;
 }
 
-static int parallel_hash(uint32_t n_hash, uint64_t n_iter)
+static int parallel_hash(uint32_t n_chain, uint64_t n_iter)
 {
 	char *err;
 	uint32_t *buf;
 	astrolabous_parallel_hash_fn hash;
-	buf = calloc(n_hash, 32);
+	buf = calloc(n_chain, 32);
 	hash = astrolabous_parallel_hash_impl();
-	err = hash(buf, n_hash, n_iter);
+	err = hash(buf, n_chain, n_iter);
 	if (err) {
 		fprintf(stderr, "%s\n", err);
 		free(err);
@@ -44,19 +44,19 @@ static int parallel_hash(uint32_t n_hash, uint64_t n_iter)
 
 int main(int argc, char **argv)
 {
-	uint32_t n_hash = 1;
+	uint32_t n_chain = 1;
 	uint64_t n_iter = 1;
 	if (argc > 1)
 		n_iter <<= atoi(argv[1]);
 	if (argc > 2)
-		n_hash = atoi(argv[2]);
-	if (n_hash > 1) {
+		n_chain = atoi(argv[2]);
+	if (n_chain > 1) {
 		printf("Max OpenCL threads: %d\n", astrolabous_opencl_max_threads());
-		return parallel_hash(n_hash, n_iter);
-	} else if (n_hash == 1) {
+		return parallel_hash(n_chain, n_iter);
+	} else if (n_chain == 1) {
 		return single_hash(n_iter);
 	} else {
-		fprintf(stderr, "n_hash must be at least 1\n");
+		fprintf(stderr, "n_chain must be at least 1\n");
 		return 1;
 	}
 }

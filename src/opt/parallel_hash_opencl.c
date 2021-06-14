@@ -123,7 +123,7 @@ static void cleanup_opencl(struct ctx_opencl *ctx)
 		clReleaseDevice(*ctx->p_device);*/
 }
 
-static int run_kernel(cl_kernel kernel, cl_command_queue queue, size_t n_hash, uint64_t n_iter)
+static int run_kernel(cl_kernel kernel, cl_command_queue queue, size_t n_chain, uint64_t n_iter)
 {
 	int err;
 	clock_t duration;
@@ -133,7 +133,7 @@ static int run_kernel(cl_kernel kernel, cl_command_queue queue, size_t n_hash, u
 		err = clSetKernelArg(kernel, 1, sizeof(step_iters), &step_iters);
 		if (err < 0) return err;
 		duration = clock();
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &n_hash, NULL, 0, NULL, NULL);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &n_chain, NULL, 0, NULL, NULL);
 		if (err < 0) return err;
 		err = clFinish(queue);
 		if (err < 0) return err;
@@ -146,7 +146,7 @@ static int run_kernel(cl_kernel kernel, cl_command_queue queue, size_t n_hash, u
 }
 
 char *astrolabous_parallel_hash_opencl(
-		uint32_t *buf, uint32_t n_hash, uint64_t n_iter)
+		uint32_t *buf, uint32_t n_chain, uint64_t n_iter)
 {
 	struct ctx_opencl ctx = { 0 };
 	size_t prog_size;
@@ -205,13 +205,13 @@ char *astrolabous_parallel_hash_opencl(
 		return err_str_opencl(err);
 	}
 	ctx.p_queue = &queue;
-	buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, n_hash * 32, NULL, &err);
+	buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, n_chain * 32, NULL, &err);
 	if (err < 0) {
 		cleanup_opencl(&ctx);
 		return err_str_opencl(err);
 	}
 	ctx.p_buffer = &buffer;
-	err = clEnqueueWriteBuffer(queue, buffer, CL_FALSE, 0, n_hash * 32, buf, 0, NULL, NULL);
+	err = clEnqueueWriteBuffer(queue, buffer, CL_FALSE, 0, n_chain * 32, buf, 0, NULL, NULL);
 	if (err < 0) {
 		cleanup_opencl(&ctx);
 		return err_str_opencl(err);
@@ -221,12 +221,12 @@ char *astrolabous_parallel_hash_opencl(
 		cleanup_opencl(&ctx);
 		return err_str_opencl(err);
 	}
-	err = run_kernel(kernel, queue, n_hash, n_iter);
+	err = run_kernel(kernel, queue, n_chain, n_iter);
 	if (err < 0) {
 		cleanup_opencl(&ctx);
 		return err_str_opencl(err);
 	}
-	err = clEnqueueReadBuffer(queue, buffer, CL_TRUE, 0, n_hash * 32, buf, 0, NULL, NULL);
+	err = clEnqueueReadBuffer(queue, buffer, CL_TRUE, 0, n_chain * 32, buf, 0, NULL, NULL);
 	if (err < 0) {
 		cleanup_opencl(&ctx);
 		return err_str_opencl(err);

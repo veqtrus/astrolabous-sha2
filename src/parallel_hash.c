@@ -7,12 +7,12 @@
 #include "astrolabous/astrolabous.h"
 
 static char *parallel_hash_fallback(
-		uint32_t *buf, uint32_t n_hash, uint64_t n_iter)
+		uint32_t *buf, uint32_t n_chain, uint64_t n_iter)
 {
 	uint32_t *buf_end;
 	astrolabous_hash_fn hash;
 	hash = astrolabous_hash_impl();
-	for (buf_end = buf + n_hash * 8; buf < buf_end; buf += 8)
+	for (buf_end = buf + n_chain * 8; buf < buf_end; buf += 8)
 		hash(buf, n_iter);
 	return NULL;
 }

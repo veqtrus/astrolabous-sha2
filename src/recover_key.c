@@ -6,14 +6,14 @@
 void astrolabous_recover_key(
 		uint8_t *key,
 		const uint8_t *ckey,
-		uint32_t n_hash,
+		uint32_t n_chain,
 		uint64_t n_iter)
 {
 	uint32_t buf[8];
 	uint32_t pad[8];
 	astrolabous_hash_fn hash;
 	int i;
-	if (n_hash == 0 || n_iter == 0) return;
+	if (n_chain == 0 || n_iter == 0) return;
 	hash = astrolabous_hash_impl();
 	astrolabous_words_from_bytes(buf, ckey, 8);
 	do {
@@ -22,6 +22,6 @@ void astrolabous_recover_key(
 		astrolabous_words_from_bytes(pad, ckey, 8);
 		for (i = 0; i < 8; ++i)
 			buf[i] ^= pad[i];
-	} while (--n_hash);
+	} while (--n_chain);
 	astrolabous_words_to_bytes(buf, key, 8);
 }

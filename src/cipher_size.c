@@ -1,6 +1,6 @@
 #include "astrolabous/astrolabous.h"
 
-uint32_t astrolabous_cipher_size(uint32_t n_hash)
+uint32_t astrolabous_cipher_size(uint32_t n_chain)
 {
-	return (n_hash + 1) * ASTROLABOUS_KEY_SIZE;
+	return (n_chain + 1) * ASTROLABOUS_KEY_SIZE;
 }

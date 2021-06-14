@@ -3,9 +3,9 @@
 #include <stddef.h>
 
 char *astrolabous_parallel_hash_opencl(
-		uint32_t *buf, uint32_t n_hash, uint64_t n_iter)
+		uint32_t *buf, uint32_t n_chain, uint64_t n_iter)
 {
-	(void) buf; (void) n_hash; (void) n_iter;
+	(void) buf; (void) n_chain; (void) n_iter;
 	return NULL;
 }
 
