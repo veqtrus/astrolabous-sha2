@@ -51,7 +51,7 @@ src/opt/hash_intel_sha.c: src/opt/hash_intel_sha.h
 src/opt/no_intel_sha.c: src/opt/hash_intel_sha.h
 src/opt/parallel_hash_opencl.c: src/opt/parallel_hash_opencl.h
 src/opt/no_opencl.c: src/opt/parallel_hash_opencl.h
-src/cipher_size.c: include/astrolabous/astrolabous.h
-src/hash.c: src/opt/hash_generic.h src/opt/hash_intel_sha.h
-src/recover_key.c: include/astrolabous/astrolabous.h src/hash.h src/words.h
+src/astrolabous.c: include/astrolabous/astrolabous.h
+src/hash.c: src/hash.h src/opt/hash_generic.h src/opt/hash_intel_sha.h
+src/parallel_hash.c: src/parallel_hash.h src/opt/parallel_hash_opencl.h include/astrolabous/astrolabous.h
 src/words.c: src/words.h
