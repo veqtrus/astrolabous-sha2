@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 	}
 	printf("Encrypted in %f s (%f MH/s)\n", duration, n_hashes * 1e-6 / duration);
 	start = clock();
-	astrolabous_recover_key(decr_key, cipher, n_chain, n_iter);
+	astrolabous_recover_key(decr_key, cipher, NULL, n_chain, n_iter);
 	duration = (clock() - start) / (double) CLOCKS_PER_SEC;
 	if (memcmp(key, decr_key, ASTROLABOUS_KEY_SIZE)) {
 		fprintf(stderr, "Keys do not match\n");

@@ -38,13 +38,15 @@ ASTROLABOUS_EXTERN char *astrolabous_encrypt_key(
 
 ASTROLABOUS_EXTERN char *astrolabous_decrypt_key(
 		uint8_t *key,
+		const uint8_t *ckey,
 		const uint8_t *wkey,
 		uint32_t n_chain,
 		uint64_t n_iter);
 
-ASTROLABOUS_EXTERN void astrolabous_recover_key(
+ASTROLABOUS_EXTERN char *astrolabous_recover_key(
 		uint8_t *key,
 		const uint8_t *ckey,
+		uint8_t *wkey,
 		uint32_t n_chain,
 		uint64_t n_iter);
 
