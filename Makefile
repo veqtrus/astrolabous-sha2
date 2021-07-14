@@ -3,15 +3,15 @@ INCLUDES ?= -Iinclude/
 CFLAGS ?= -std=c99 -O2 $(INCLUDES) $(WARNINGS)
 CC ?= gcc
 
-ASTROLABOUS_OPT := $(subst \,, ,$(ASTROLABOUS_OPT))
+astopt := $(subst \,, ,$(astopt))
 
-ifneq (,$(findstring intel_sha,$(ASTROLABOUS_OPT)))
+ifneq (,$(findstring intel_sha,$(astopt)))
 SOURCES += src/opt/hash_intel_sha.c
 else
 SOURCES += src/opt/no_intel_sha.c
 endif
 
-ifneq (,$(findstring opencl,$(ASTROLABOUS_OPT)))
+ifneq (,$(findstring opencl,$(astopt)))
 LDFLAGS += -lOpenCL
 SOURCES += src/opt/parallel_hash_opencl.c src/opt/parallel_hash_source.tmp.c
 else
